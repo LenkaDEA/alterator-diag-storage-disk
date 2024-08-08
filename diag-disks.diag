@@ -1,0 +1,12 @@
+[Alterator Entry]
+Type = diag
+Name = Disks
+DisplayName = Diagnostic tool disks
+DisplayName[ru] = Пример инструмента диагностики
+Comment = Diagnostic tool comment
+Comment[ru] = Комментарий к диагностическому инструменту
+Icon = system-run
+
+[is_gigabyte]
+DisplayName = Is motherboard manufacturer - Gigabyte?
+DisplayName[ru] = Производитель материнской платы - Gigabyte?
