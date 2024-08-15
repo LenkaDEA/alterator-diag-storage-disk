@@ -12,8 +12,8 @@ action_id = Info
 
 [Run]
 execute = diag-disks {param}
-stdout_signal_name = diag_disks_stdout_signal
-stderr_signal_name = diag_disks_stderr_signal
+stdout_signal_name = diag1_stdout_signal
+stderr_signal_name = diag1_stderr_signal
 thread_limit = 1
 action_id = Run
 

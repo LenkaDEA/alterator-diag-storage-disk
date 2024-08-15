@@ -1,0 +1,32 @@
+[Alterator Entry]
+Type = diag
+Name = Disks
+DisplayName = Diagnostic tool disks
+DisplayName[ru_RU] = Диагностика дисков
+Comment = Disk diagnostics using the smartctl utility
+Comment[ru_RU] = Диагностика дисков с помощью утилиты smartctl
+Icon = diag-disks
+
+[is_disks]
+DisplayName = Display disks
+DisplayName[ru_RU] = Показать диски
+
+[is_adout_disk]
+DisplayName = Information about the disk
+DisplayName[ru_RU] = Информация о диске
+
+[check_support_smart]
+DisplayName = Check S.M.A.R.T. support
+DisplayName[ru_RU] = Проверка поддержки S.M.A.R.T.
+
+[is_about_disk_status]
+DisplayName = Information about the disk status
+DisplayName[ru_RU] = Информация о состоянии диска
+
+[is_disk_health]
+DisplayName = Disk health test using the smartctl utility
+DisplayName[ru_RU] = Проверка работоспособности диска с помощью утилиты smartctl
+
+[short_test_smartctl]
+DisplayName = тест
+DisplayName[ru_RU] = тест

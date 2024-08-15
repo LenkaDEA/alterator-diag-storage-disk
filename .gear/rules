@@ -1,1 +1,2 @@
 tar: .
+spec: .gear/alterator-diag-storage-disk.spec
