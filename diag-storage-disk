@@ -1,0 +1,274 @@
+#!/bin/bash
+#
+# Copyright (c) 2024 Evgeny Sinelnikov <sin@altlinux.org>
+#
+# Disks diagnostic tool
+#
+# SPDX-License-Identifier: GPL-2.0-or-later
+#
+
+#trap 'echo "# $BASH_COMMAND";read' DEBUG
+
+set -euo pipefail
+
+. shell-getopt
+
+PROG="${0##*/}"
+PROG_VERSION='0.0.1'
+task_list="$*"
+
+cmd="run"
+global_retval=0
+DISKS=""
+
+# Display the program version
+print_version()
+{
+	cat <<EOF
+$PROG version $PROG_VERSION
+Written by Elena Dyatlenko <lenka@altlinux.org>
+
+Copyright (C) 2024 Elena Dyatlenko <lenka@altlinux.org>
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+EOF
+	exit
+}
+
+# Function for showing help
+show_usage()
+{
+	cat <<EOF
+$PROG - disks diagnostic tool.
+
+Usage: $PROG [options] [<diagnostic-task>]
+
+Options:
+  -l, --list                list of diagnostic tasks;
+  -V, --version             print program version and exit;
+  -h, --help                show this text and exit.
+
+Report bugs to https://bugzilla.altlinux.org/
+
+EOF
+	exit
+}
+
+TEMP=$(getopt -n "$PROG" -o "l,V,h" -l "list,version,help" -- "$@") || show_usage
+eval set -- "$TEMP"
+
+while :; do
+	case "$1" in
+		--) shift; break
+			;;
+		-l|--list) cmd="list";
+			;;
+		-V|--version) print_version
+			;;
+		-h|--help) show_usage
+			;;
+		*) fatal "Unrecognized option: $1"
+			;;
+	esac
+	shift
+done
+
+# Display a list of tests
+task_show()
+{
+	local func="$1"
+
+	echo "$func"
+}
+
+# Run the tests
+task_run()
+{
+	local retval=126
+	local func="$1"
+	if test -n "$task_list"; then
+		echo "$task_list" | tr ' ' '\n' | grep -q "^$func\$" ||
+			return 0
+	fi
+	$func && retval=0 || retval="$?"
+	test $retval = 0 || global_retval=1
+	return $retval
+}
+
+# Display the test execution status
+test_status()
+{
+	case "$1" in
+		0) echo "[DONE]: $2"
+		;;
+		1) echo "[FAIL]: $2"
+		;;
+		2) echo "[WARNING]: $2"
+		;;
+		*) echo "[FAIL]: $2"
+	esac
+}
+
+# Launch the selected program module (list, run)
+task()
+{
+	local task="$1"
+	case "$cmd" in
+		list)
+			task_show "$task"
+		;;
+		run)
+			if test -z "$task_list" || grep "$task" <<< "$task_list"; then
+				local result=0
+				task_run "$task" || result=$?
+				test_status "$result" "$task"
+			fi
+		;;
+		*)
+			fatal "Unrecognized command: $cmd"
+		;;
+	esac
+}
+
+# Get a list of system disks
+get_disks()
+{
+	local retval=0
+	DISKS=$(smartctl --scan | grep -E -o '/dev/[^[:space:],]+' | sort | uniq) || retval=1
+	return "$retval"
+}
+
+# Verification whether this machine is virtual
+is_vm()
+{
+	local retval=0
+	echo ================================
+	hostnamectl | grep -i virtualization || retval=1
+	if [ "$retval" -eq "0" ]; then
+		echo This is a virtual machine.
+	else
+		echo This is not a virtual machine
+	fi
+	echo ================================
+	return "$retval"
+}
+
+# Display a list of system disks
+view_disks()
+{
+	local retval=0
+	echo ================================
+	lsblk || retval=1
+	echo ================================
+	return "$retval"
+}
+
+# Display the disk type
+view_disk_type()
+{
+	local retval=0
+	echo ================================
+	smartctl --scan
+	echo ================================
+	return "$retval"
+}
+
+# Display disk information using the smartctl utility
+view_adout_disk()
+{
+	local retval=0
+	echo ================================
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+        smartctl -i "$disk" || retval=1
+	done
+	echo ================================
+	return "$retval"
+}
+
+# Check SMART support
+check_support_smart()
+{
+	local retval=0
+	echo ================================
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		local disk_info
+		# Add a warning if SMART is supported but not enabled
+		smartctl --info "$disk" | grep -E '(SMART support is:.*Enabled)' || retval=1
+		[ "$retval" -eq "1" ] && echo S.M.A.R.T. is not supported on "$disk"
+	done
+	echo ================================
+	return "$retval"
+}
+
+# Display detailed information about the disk status using the smartctl utility
+view_about_disk_status()
+{
+	local retval=0
+	echo ================================
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -A "$disk" || retval=1
+	done
+	echo ================================
+	return "$retval"
+}
+
+# Display the result of the disk health check using the smartctl utility
+view_disk_health()
+{
+	local retval=0
+	echo ================================
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -H "$disk"| grep PASSED || retval=1
+	done
+	echo ================================
+	return "$retval"
+}
+
+# Begin an extended self-test of disks (short)
+short_test_smartctl()
+{
+	local retval=0
+	echo ================================
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -t short "$disk" || retval=$?
+		[ "$retval" -eq "4" ] && retval=2
+	done
+	echo ================================
+	return "$retval"
+}
+
+# Display the Self Test Error Log
+view_tests_smartctl()
+{
+	local retval=0
+	echo ================================
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -l selftest "$disk" || retval=1
+	done
+	echo ================================
+	return "$retval"
+}
+
+task is_vm
+task view_disks
+task view_disk_type
+task view_adout_disk
+task check_support_smart
+task view_about_disk_status
+task view_disk_health
+task short_test_smartctl
+task view_tests_smartctl
+
+exit "$global_retval"

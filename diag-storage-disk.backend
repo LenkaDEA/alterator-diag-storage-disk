@@ -1,24 +1,24 @@
 [Alterator Entry]
 Type = Backend
 Module = executor
-Name = diag_disks
+Name = diag_storage_disk
 Interface = diag1
 
 [Info]
-execute = cat /usr/share/alterator/diag/diag-disks.diag
+execute = cat /usr/share/alterator/diag/diag-storage-disk.diag
 stdout_bytes = enabled
 stdout_byte_limit = 200000
 action_id = Info
 
 [Run]
-execute = diag-disks {param}
-stdout_signal_name = diag_disks_stdout_signal
-stderr_signal_name = diag_disks_stderr_signal
+execute = diag-storage-disk {param}
+stdout_signal_name = diag1_stdout_signal
+stderr_signal_name = diag1_stderr_signal
 thread_limit = 1
 action_id = Run
 
 [List]
-execute = diag-disks -l
+execute = diag-storage-disk -l
 stdout_strings = enabled
 stdout_strings_limit = 200000
 action_id = List

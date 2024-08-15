@@ -1,0 +1,44 @@
+[Alterator Entry]
+Type = diag
+Name = Disks
+DisplayName = Diagnostic tool disks
+DisplayName[ru_RU] = Диагностика дисков
+Comment = Disk diagnostics using the smartctl utility
+Comment[ru_RU] = Диагностика дисков с помощью утилиты smartctl
+Icon = diag-storage-disk
+
+[is_vm]
+DisplayName = Verification whether this machine is virtual
+DisplayName[ru_RU] = Проверка, является ли этот компьютер виртуальным
+
+[view_disks]
+DisplayName = Display disks
+DisplayName[ru_RU] = Показать диски
+
+[view_disk_type]
+DisplayName = Display disks type
+DisplayName[ru_RU] = Показать тип дисков
+
+[view_adout_disk]
+DisplayName = Information about the disk
+DisplayName[ru_RU] = Информация о диске
+
+[check_support_smart]
+DisplayName = Check S.M.A.R.T. support
+DisplayName[ru_RU] = Проверка поддержки S.M.A.R.T.
+
+[view_about_disk_status]
+DisplayName = [S.M.A.R.T.]: Information about the disk status
+DisplayName[ru_RU] = [S.M.A.R.T.]: Информация о состоянии диска
+
+[view_disk_health]
+DisplayName = [S.M.A.R.T.]: Disk health test using the smartctl utility
+DisplayName[ru_RU] = [S.M.A.R.T.]: Проверка работоспособности диска с помощью утилиты smartctl
+
+[short_test_smartctl]
+DisplayName = [S.M.A.R.T.]: Running a short disk health test
+DisplayName[ru_RU] = [S.M.A.R.T.]: Запуск короткого тестирования состояния диска
+
+[view_tests_smartctl]
+DisplayName = [S.M.A.R.T.]: View the Self Test Error Log
+DisplayName[ru_RU] = [S.M.A.R.T.]: Просмотр the Self Test Error Log (журнал ошибок самотетирования)
