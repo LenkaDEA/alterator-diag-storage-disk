@@ -19,7 +19,7 @@ PROG_VERSION='0.0.1'
 cmd="run"
 global_retval=0
 
-disk=""
+disks=""
 
 print_version()
 {
@@ -84,34 +84,22 @@ task_run()
 {
 	local retval=126
 	local func="$1"
-
-
-	#Сюда заходим если запускаем один тест
 	if test -n "$task_list"; then
-		#записывает в тасклист тест что надо выполнить
 		echo "$task_list" | tr ' ' '\n' | grep -q "^$func\$" ||
 			return 0
-		#echo ВЫВОДИК ТАСКЛИСТ $task_list
 	fi
-	#echo мы вызываем тест ДО === $task_list
 	$func && retval=0 || retval="$?"
 	test $retval = 0 || global_retval=1
-	#echo мы вызываем тест
-
 	return $retval
 }
 
-#добавить проверку на то какой тест вызывается
 task()
 {
 	local task="$1"
 	case "$cmd" in
 		list) task_show "$task"
-		#echo task_show
-			;;
-			# добавить условие что лист есть в списке... 
+			;; 
 		run)
-		#echo ТАСК ЛИСТ ==========$task_list 
 		if test -z "$task_list" || grep "$task" <<< "$task_list"; then
 			task_run "$task" && echo "[DONE]: $task" || echo "[FAIL]: $task"
 		fi
@@ -133,51 +121,12 @@ find()
 	return $retval
 }
 
-#Если несколько дисков, стоит добавить выбор конктретного...
 get_disk()
 {
 	local retval=0
 	local std_out_disk
-	# disk=""
-	# std_out_disk=$(smartctl --scan)
-	std_out_disk="/dev/nvme0 -d nvme0 ssss # nvme0 SIS device"
-
-	# "/dev/nvme0 -d nvme0 ssss # nvme0 SIS device /dev/fffff -d nvme0 ssss # nvme0 SIS device /dev/ddddd"
-
-
-	# std_out_disk="/dev/nvme0 dfg fd"
-	# std_out_disk=$(lsblk)
-
-	grep " -d"  <<< $std_out_disk
-	echo std_out_disk = $std_out_disk
-
-	std_out_disk=${std_out_disk%" -d"*} # "/dev/nvme0 -d nvme0 ssss # nvme0 SIS device /dev/fffff -d nvme0 ssss # nvme0 SIS device /dev/ddddd"
-	# Делай пока есть " -d"
-	local while_res=0
-	find "$std_out_disk" && while_res=1 || while_res=0
-	echo ПЕРЕД ЦИКЛОМ while_res == $while_res
-	while [ "$while_res" -eq "1" ]
-	do
-		disk=$disk${std_out_disk#*" device"} # /dev/fffff -d nvme0 ssss # nvme0 SIS device /dev/ddddd
-		std_out_disk=${std_out_disk%" -d"*}
-		echo
-		echo ЗАШЛИ В ЦИКЛ
-		echo disk = $disk
-		echo std_out_disk = $std_out_disk
-		echo
-		find "$std_out_disk" && while_res=1 || while_res=0
-		if [ "$while_res" -eq "0" ]
-		then
-			disk=$disk" "${std_out_disk%" -d"*}
-		fi
-		echo while_res = $while_res
-		echo
-
-	done
-
-	
-	echo ДИСКИ СИСТЕМЫ: $disk
-	echo
+	std_out_disk=$(smartctl --scan)
+	disks=$(echo "$std_out_disk" | grep -E -o '/dev/[^[:space:],]+' | sort | uniq)
 	return $retval
 }
 
@@ -195,23 +144,12 @@ is_disks()
 is_adout_disk()
 {
 	local retval=0
-	local m_disk=""
-	m_disk=$disk
 	echo ================================
-	echo is_adout_disk "------" $disk
 	get_disk || retval=1
-	while test -z $m_disk -eq true
-	do
-		local d
-		d=${m_disk#*" "}
-		echo ДИСК ТАКОЙ-ТО == $d
-		smartctl -i $d
-
-		m_disk=${m_disk%" "*}
+	for disk in $disks; do
+		echo Disk: $disk
+        smartctl -i $disk || retval=1
 	done
-
-
-	smartctl -i $disk || retval=1
 	echo ================================
 	return $retval
 }
@@ -223,14 +161,17 @@ check_support_smart()
 	local retval=0
 	echo ================================
 	get_disk || retval=1
-	local disk_info
-	disk_info=$(smartctl --info $disk)
-	#Добавить ворнинг если есть поддержка, но не включен
-	grep 'SMART support is:' <<< $disk_info || retval=1
-	if [ $retval -eq 1 ]
-		then
-		echo S.M.A.R.T. is not supported.
-	fi
+	for disk in $disks; do
+		echo Disk: $disk
+		local disk_info
+		disk_info=$(smartctl --info $disk)
+		#Добавить ворнинг если есть поддержка, но не включен
+		grep 'SMART support is:' <<< $disk_info || retval=1
+		if [ $retval -eq 1 ]
+			then
+			echo S.M.A.R.T. is not supported on $disk
+		fi
+	done
 	echo ================================
 	return $retval
 }
@@ -240,7 +181,10 @@ is_about_disk_status()
 	local retval=0
 	echo ================================
 	get_disk || retval=1
-	smartctl -A $disk || retval=1
+	for disk in $disks; do
+		echo Disk: $disk
+		smartctl -A "$disk" || retval=1
+	done
 	echo ================================
 	return $retval
 }
@@ -250,7 +194,10 @@ is_disk_health()
 	local retval=0
 	echo ================================
 	get_disk || retval=1
-	smartctl -H $disk | grep PASSED || retval=1
+	for disk in $disks; do
+		echo Disk: $disk
+		smartctl -H $disk | grep PASSED || retval=1
+	done
 	echo ================================
 	return $retval
 }
@@ -261,10 +208,13 @@ short_test_smartctl()
 	local retval=0
 	echo ================================
 	get_disk
-	smartctl -t short $disk || retval=1
-	#добавить время через которое надо запустить...
-	#добавить тест, который будет отдельно считывать selftest, чтоб и анализировать его. А тут напишем "запустите через N минут"
-	smartctl -l selftest $disk
+	for disk in $disks; do
+		echo Disk: $disk
+		smartctl -t short $disk || retval=1
+		#добавить время через которое надо запустить...
+		#добавить тест, который будет отдельно считывать selftest, чтоб и анализировать его. А тут напишем "запустите через N минут"
+		smartctl -l selftest $disk
+	done
 	echo ================================
 	return $retval
 }

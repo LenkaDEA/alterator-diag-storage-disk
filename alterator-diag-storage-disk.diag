@@ -28,5 +28,5 @@ DisplayName = Disk health test using the smartctl utility
 DisplayName[ru_RU] = Проверка работоспособности диска с помощью утилиты smartctl
 
 [short_test_smartctl]
-DisplayName = тест
-DisplayName[ru_RU] = тест
+DisplayName = smartctl -t short $disk
+DisplayName[ru_RU] = smartctl -t short $disk
