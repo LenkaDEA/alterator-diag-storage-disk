@@ -115,10 +115,6 @@ task()
 		if test -z "$task_list" || grep "$task" <<< "$task_list"; then
 			task_run "$task" && echo "[DONE]: $task" || echo "[FAIL]: $task"
 		fi
-		# if grep "$task" <<< "$task_list"; then
-		
-		# 	task_run "$task" && echo "[DONE]: $task" || echo "[FAIL]: $task"
-		# fi
 			;;
 		*) fatal "Unrecognized command: $cmd"
 			;;
@@ -128,13 +124,60 @@ task()
 #пофиксить вывод результатов теста -DONE
 #Пройтись по выводу приложения
 
+find()
+{
+	local retval=0
+	echo find '('$1')'
+	grep " -d"  <<< $1 || retval=1
+	echo retval == $retval
+	return $retval
+}
+
 #Если несколько дисков, стоит добавить выбор конктретного...
 get_disk()
 {
 	local retval=0
 	local std_out_disk
-	std_out_disk=$(smartctl --scan)
-	disk=${std_out_disk%" -d"*} || retval=1
+	# disk=""
+	# std_out_disk=$(smartctl --scan)
+	std_out_disk="/dev/nvme0 -d nvme0 ssss # nvme0 SIS device"
+
+	# "/dev/nvme0 -d nvme0 ssss # nvme0 SIS device /dev/fffff -d nvme0 ssss # nvme0 SIS device /dev/ddddd"
+
+
+	# std_out_disk="/dev/nvme0 dfg fd"
+	# std_out_disk=$(lsblk)
+
+	grep " -d"  <<< $std_out_disk
+	echo std_out_disk = $std_out_disk
+
+	std_out_disk=${std_out_disk%" -d"*} # "/dev/nvme0 -d nvme0 ssss # nvme0 SIS device /dev/fffff -d nvme0 ssss # nvme0 SIS device /dev/ddddd"
+	# Делай пока есть " -d"
+	local while_res=0
+	find "$std_out_disk" && while_res=1 || while_res=0
+	echo ПЕРЕД ЦИКЛОМ while_res == $while_res
+	while [ "$while_res" -eq "1" ]
+	do
+		disk=$disk${std_out_disk#*" device"} # /dev/fffff -d nvme0 ssss # nvme0 SIS device /dev/ddddd
+		std_out_disk=${std_out_disk%" -d"*}
+		echo
+		echo ЗАШЛИ В ЦИКЛ
+		echo disk = $disk
+		echo std_out_disk = $std_out_disk
+		echo
+		find "$std_out_disk" && while_res=1 || while_res=0
+		if [ "$while_res" -eq "0" ]
+		then
+			disk=$disk" "${std_out_disk%" -d"*}
+		fi
+		echo while_res = $while_res
+		echo
+
+	done
+
+	
+	echo ДИСКИ СИСТЕМЫ: $disk
+	echo
 	return $retval
 }
 
@@ -152,8 +195,22 @@ is_disks()
 is_adout_disk()
 {
 	local retval=0
+	local m_disk=""
+	m_disk=$disk
 	echo ================================
+	echo is_adout_disk "------" $disk
 	get_disk || retval=1
+	while test -z $m_disk -eq true
+	do
+		local d
+		d=${m_disk#*" "}
+		echo ДИСК ТАКОЙ-ТО == $d
+		smartctl -i $d
+
+		m_disk=${m_disk%" "*}
+	done
+
+
 	smartctl -i $disk || retval=1
 	echo ================================
 	return $retval

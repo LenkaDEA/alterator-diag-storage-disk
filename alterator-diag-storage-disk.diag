@@ -5,7 +5,7 @@ DisplayName = Diagnostic tool disks
 DisplayName[ru_RU] = Диагностика дисков
 Comment = Disk diagnostics using the smartctl utility
 Comment[ru_RU] = Диагностика дисков с помощью утилиты smartctl
-Icon = diag-disks
+Icon = alterator-diag-storage-disk
 
 [is_disks]
 DisplayName = Display disks

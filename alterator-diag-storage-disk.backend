@@ -5,20 +5,20 @@ Name = diag_disks
 Interface = diag1
 
 [Info]
-execute = cat /usr/share/alterator/diag/diag-disks.diag
+execute = cat /usr/share/alterator/diag/alterator-diag-storage-disk.diag
 stdout_bytes = enabled
 stdout_byte_limit = 200000
 action_id = Info
 
 [Run]
-execute = diag-disks {param}
+execute = alterator-diag-storage-disk {param}
 stdout_signal_name = diag1_stdout_signal
 stderr_signal_name = diag1_stderr_signal
 thread_limit = 1
 action_id = Run
 
 [List]
-execute = diag-disks -l
+execute = alterator-diag-storage-disk -l
 stdout_strings = enabled
 stdout_strings_limit = 200000
 action_id = List
