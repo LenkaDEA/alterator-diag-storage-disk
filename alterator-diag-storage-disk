@@ -15,25 +15,27 @@ set -euo pipefail
 
 PROG="${0##*/}"
 PROG_VERSION='0.0.1'
+task_list="$*"
 
 cmd="run"
 global_retval=0
+DISKS=""
 
-disks=""
-
+# Display the program version
 print_version()
 {
 	cat <<EOF
 $PROG version $PROG_VERSION
-Written by Evgeny Sinelnikov <sin@altlinux.org>
+Written by Elena Dyatlenko <lenka@altlinux.org>
 
-Copyright (C) 2024 Evgeny Sinelnikov <sin@altlinux.org>
+Copyright (C) 2024 Elena Dyatlenko <lenka@altlinux.org>
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 EOF
 	exit
 }
 
+# Function for showing help
 show_usage()
 {
 	cat <<EOF
@@ -71,8 +73,7 @@ while :; do
 	shift
 done
 
-task_list="$*" #тут он начинает все вызывать
-
+# Display a list of tests
 task_show()
 {
 	local func="$1"
@@ -80,6 +81,7 @@ task_show()
 	echo "$func"
 }
 
+# Run the tests
 task_run()
 {
 	local retval=126
@@ -93,137 +95,173 @@ task_run()
 	return $retval
 }
 
+# Display the test execution status
+test_status()
+{
+	case "$1" in
+		0) echo "[DONE]: $2"
+		;;
+		1) echo "[FAIL]: $2"
+		;;
+		2) echo "[WARNING]: $2"
+		;;
+		*) echo "[FAIL]: $2"
+	esac
+}
+
+# Launch the selected program module (list, run)
 task()
 {
 	local task="$1"
 	case "$cmd" in
-		list) task_show "$task"
-			;; 
+		list)
+			task_show "$task"
+		;;
 		run)
-		if test -z "$task_list" || grep "$task" <<< "$task_list"; then
-			task_run "$task" && echo "[DONE]: $task" || echo "[FAIL]: $task"
-		fi
-			;;
-		*) fatal "Unrecognized command: $cmd"
-			;;
+			if test -z "$task_list" || grep "$task" <<< "$task_list"; then
+				local result=0
+				task_run "$task" || result=$?
+				test_status "$result" "$task"
+			fi
+		;;
+		*)
+			fatal "Unrecognized command: $cmd"
+		;;
 	esac
 }
 
-#пофиксить вывод результатов теста -DONE
-#Пройтись по выводу приложения
-
-find()
+# Get a list of system disks
+get_disks()
 {
 	local retval=0
-	echo find '('$1')'
-	grep " -d"  <<< $1 || retval=1
-	echo retval == $retval
+	local scan_discks
+	scan_discks=$(smartctl --scan)
+	DISKS=$(echo "$scan_discks" | grep -E -o '/dev/[^[:space:],]+' | sort | uniq)
 	return $retval
 }
 
-get_disk()
+# Display a list of system disks
+view_disks()
 {
 	local retval=0
-	local std_out_disk
-	std_out_disk=$(smartctl --scan)
-	disks=$(echo "$std_out_disk" | grep -E -o '/dev/[^[:space:],]+' | sort | uniq)
-	return $retval
-}
-
-is_disks()
-{
-	local retval=0
-	#printf "\n"
-	#echo Test - is_disks
 	echo ================================
 	lsblk || retval=1
 	echo ================================
 	return $retval
 }
 
-is_adout_disk()
+# Display disk information using the smartctl utility
+view_adout_disk()
 {
 	local retval=0
 	echo ================================
-	get_disk || retval=1
-	for disk in $disks; do
-		echo Disk: $disk
-        smartctl -i $disk || retval=1
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+        smartctl -i "$disk" || retval=1
 	done
 	echo ================================
 	return $retval
 }
 
-#Проверка включенного SMART
-#	Если не включен, то на всех тестах вывести предупреждение, что смарт не включен.
+# Check SMART support
 check_support_smart()
 {
 	local retval=0
 	echo ================================
-	get_disk || retval=1
-	for disk in $disks; do
-		echo Disk: $disk
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
 		local disk_info
-		disk_info=$(smartctl --info $disk)
-		#Добавить ворнинг если есть поддержка, но не включен
-		grep 'SMART support is:' <<< $disk_info || retval=1
-		if [ $retval -eq 1 ]
-			then
-			echo S.M.A.R.T. is not supported on $disk
-		fi
+		disk_info=$(smartctl --info "$disk")
+		# Add a warning if SMART is supported but not enabled
+		grep 'SMART support is:' <<< "$disk_info" || retval=1
+		[ "$retval" -eq "1" ] && echo S.M.A.R.T. is not supported on "$disk"
 	done
 	echo ================================
 	return $retval
 }
 
-is_about_disk_status()
+# Display detailed information about the disk status using the smartctl utility
+view_about_disk_status()
 {
 	local retval=0
 	echo ================================
-	get_disk || retval=1
-	for disk in $disks; do
-		echo Disk: $disk
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
 		smartctl -A "$disk" || retval=1
 	done
 	echo ================================
 	return $retval
 }
 
-is_disk_health()
+# Display the result of the disk health check using the smartctl utility
+view_disk_health()
 {
 	local retval=0
 	echo ================================
-	get_disk || retval=1
-	for disk in $disks; do
-		echo Disk: $disk
-		smartctl -H $disk | grep PASSED || retval=1
+	get_disks || retval=1
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -H "$disk"| grep PASSED || retval=1
 	done
 	echo ================================
 	return $retval
 }
 
-#Заготова для теста
+# Begin an extended self-test of disks (short)
 short_test_smartctl()
 {
 	local retval=0
+	local
 	echo ================================
-	get_disk
-	for disk in $disks; do
-		echo Disk: $disk
-		smartctl -t short $disk || retval=1
-		#добавить время через которое надо запустить...
-		#добавить тест, который будет отдельно считывать selftest, чтоб и анализировать его. А тут напишем "запустите через N минут"
-		smartctl -l selftest $disk
+	get_disks
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -t short "$disk" || retval=$?
+		[ "$retval" -eq "4" ] && retval=2
 	done
 	echo ================================
 	return $retval
 }
 
-task is_disks
-task is_adout_disk
+# Begin an extended self-test of disks (long)
+long_test_smartctl()
+{
+	local retval=0
+	echo ================================
+	get_disks
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -t long "$disk" || retval=$?
+		[ "$retval" -eq "4" ] && retval=2
+	done
+	echo ================================
+	return $retval
+}
+
+# Display the Self Test Error Log
+view_tests_smartctl()
+{
+	local retval=0
+	echo ================================
+	get_disks
+	for disk in $DISKS; do
+		echo Disk: "$disk"
+		smartctl -l selftest "$disk" || retval=1
+	done
+	echo ================================
+	return $retval
+}
+
+task view_disks
+task view_adout_disk
 task check_support_smart
-task is_about_disk_status
-task is_disk_health
+task view_about_disk_status
+task view_disk_health
 task short_test_smartctl
+task long_test_smartctl
+task view_tests_smartctl
 
 exit "$global_retval"

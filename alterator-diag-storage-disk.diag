@@ -7,11 +7,11 @@ Comment = Disk diagnostics using the smartctl utility
 Comment[ru_RU] = Диагностика дисков с помощью утилиты smartctl
 Icon = alterator-diag-storage-disk
 
-[is_disks]
+[view_disks]
 DisplayName = Display disks
 DisplayName[ru_RU] = Показать диски
 
-[is_adout_disk]
+[view_adout_disk]
 DisplayName = Information about the disk
 DisplayName[ru_RU] = Информация о диске
 
@@ -19,14 +19,22 @@ DisplayName[ru_RU] = Информация о диске
 DisplayName = Check S.M.A.R.T. support
 DisplayName[ru_RU] = Проверка поддержки S.M.A.R.T.
 
-[is_about_disk_status]
+[view_about_disk_status]
 DisplayName = Information about the disk status
 DisplayName[ru_RU] = Информация о состоянии диска
 
-[is_disk_health]
+[view_disk_health]
 DisplayName = Disk health test using the smartctl utility
 DisplayName[ru_RU] = Проверка работоспособности диска с помощью утилиты smartctl
 
 [short_test_smartctl]
-DisplayName = smartctl -t short $disk
-DisplayName[ru_RU] = smartctl -t short $disk
+DisplayName = Running a short disk health test
+DisplayName[ru_RU] = Запуск короткого тестирования состояния диска
+
+[long_test_smartctl]
+DisplayName = Running a long disk health test
+DisplayName[ru_RU] = Запуск долгого тестирования состояния диска
+
+[view_tests_smartctl]
+DisplayName = View the Self Test Error Log
+DisplayName[ru_RU] = Просмотр the Self Test Error Log (журнал ошибок самотетирования)
