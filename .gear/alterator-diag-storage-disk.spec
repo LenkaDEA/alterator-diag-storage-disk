@@ -14,6 +14,8 @@ Source: %name-%version.tar
 BuildRequires(pre): rpm-macros-alterator
 BuildRequires: shellcheck
 
+Requires: smartmontools
+
 %description
 Disks diagnostic tool.
 
