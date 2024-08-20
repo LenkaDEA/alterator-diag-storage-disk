@@ -39,4 +39,7 @@ shellcheck -e SC1090,SC1091,SC2004,SC2015,SC2034,SC2086,SC2154,SC2001,SC2120,SC2
 %_iconsdir/hicolor/scalable/apps/%name.svg
 
 %changelog
+* Tue Aug 20 2024 Elena Dyatlenko <lenka@altlinux.org> 0.0.1-alt1
+- Initial build
+
 
