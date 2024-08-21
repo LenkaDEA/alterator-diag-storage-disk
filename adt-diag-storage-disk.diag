@@ -39,10 +39,6 @@ DisplayName[ru_RU] = [S.M.A.R.T.]: Проверка работоспособно
 DisplayName = [S.M.A.R.T.]: Running a short disk health test
 DisplayName[ru_RU] = [S.M.A.R.T.]: Запуск короткого тестирования состояния диска
 
-[long_test_smartctl]
-DisplayName = [S.M.A.R.T.]: Running a long disk health test
-DisplayName[ru_RU] = [S.M.A.R.T.]: Запуск долгого тестирования состояния диска
-
 [view_tests_smartctl]
 DisplayName = [S.M.A.R.T.]: View the Self Test Error Log
 DisplayName[ru_RU] = [S.M.A.R.T.]: Просмотр the Self Test Error Log (журнал ошибок самотетирования)

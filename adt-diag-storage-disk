@@ -248,21 +248,6 @@ short_test_smartctl()
 	return "$retval"
 }
 
-# Begin an extended self-test of disks (long)
-long_test_smartctl()
-{
-	local retval=0
-	echo ================================
-	get_disks || retval=1
-	for disk in $DISKS; do
-		echo Disk: "$disk"
-		smartctl -t long "$disk" || retval=$?
-		[ "$retval" -eq "4" ] && retval=2
-	done
-	echo ================================
-	return "$retval"
-}
-
 # Display the Self Test Error Log
 view_tests_smartctl()
 {
@@ -285,7 +270,6 @@ task check_support_smart
 task view_about_disk_status
 task view_disk_health
 task short_test_smartctl
-task long_test_smartctl
 task view_tests_smartctl
 
 exit "$global_retval"
