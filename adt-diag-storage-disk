@@ -168,8 +168,7 @@ view_disk_type()
 {
 	local retval=0
 	echo ================================
-	smartctl --scan | grep --extended-regexp --only-matching \
-		'[^[:space:],]+ device' | sort | uniq
+	smartctl --scan
 	echo ================================
 	return "$retval"
 }
