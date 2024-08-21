@@ -134,9 +134,7 @@ task()
 get_disks()
 {
 	local retval=0
-	local scan_discks
-	scan_discks=$(smartctl --scan)
-	DISKS=$(echo "$scan_discks" | grep -E -o '/dev/[^[:space:],]+' | sort | uniq)
+	DISKS=$(smartctl --scan | grep -E -o '/dev/[^[:space:],]+' | sort | uniq) || retval=1
 	return "$retval"
 }
 
@@ -161,6 +159,17 @@ view_disks()
 	local retval=0
 	echo ================================
 	lsblk || retval=1
+	echo ================================
+	return "$retval"
+}
+
+# Display the disk type
+view_disk_type()
+{
+	local retval=0
+	echo ================================
+	smartctl --scan | grep --extended-regexp --only-matching \
+		'[^[:space:],]+ device' | sort | uniq
 	echo ================================
 	return "$retval"
 }
@@ -231,7 +240,7 @@ short_test_smartctl()
 	local retval=0
 	local
 	echo ================================
-	get_disks
+	get_disks || retval=1
 	for disk in $DISKS; do
 		echo Disk: "$disk"
 		smartctl -t short "$disk" || retval=$?
@@ -246,7 +255,7 @@ long_test_smartctl()
 {
 	local retval=0
 	echo ================================
-	get_disks
+	get_disks || retval=1
 	for disk in $DISKS; do
 		echo Disk: "$disk"
 		smartctl -t long "$disk" || retval=$?
@@ -261,7 +270,7 @@ view_tests_smartctl()
 {
 	local retval=0
 	echo ================================
-	get_disks
+	get_disks || retval=1
 	for disk in $DISKS; do
 		echo Disk: "$disk"
 		smartctl -l selftest "$disk" || retval=1
@@ -272,6 +281,7 @@ view_tests_smartctl()
 
 task is_vm
 task view_disks
+task view_disk_type
 task view_adout_disk
 task check_support_smart
 task view_about_disk_status

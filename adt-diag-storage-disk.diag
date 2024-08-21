@@ -15,6 +15,10 @@ DisplayName[ru_RU] = Проверка, является ли этот компь
 DisplayName = Display disks
 DisplayName[ru_RU] = Показать диски
 
+[view_disk_type]
+DisplayName = Display disks type
+DisplayName[ru_RU] = Показать тип дисков
+
 [view_adout_disk]
 DisplayName = Information about the disk
 DisplayName[ru_RU] = Информация о диске
