@@ -1,2 +1,2 @@
 tar: .
-spec: .gear/alterator-diag-storage-disk.spec
+spec: .gear/adt-diag-storage-disk.spec

@@ -1,4 +1,4 @@
-Name: alterator-diag-storage-disk
+Name: adt-diag-storage-disk
 Version: 0.0.1
 Release: alt1
 
