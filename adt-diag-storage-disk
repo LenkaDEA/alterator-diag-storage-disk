@@ -196,9 +196,8 @@ check_support_smart()
 	for disk in $DISKS; do
 		echo Disk: "$disk"
 		local disk_info
-		disk_info=$(smartctl --info "$disk")
 		# Add a warning if SMART is supported but not enabled
-		grep -E '(SMART support is:.*Enabled)' <<< "$disk_info" || retval=1
+		smartctl --info "$disk" | grep -E '(SMART support is:.*Enabled)' || retval=1
 		[ "$retval" -eq "1" ] && echo S.M.A.R.T. is not supported on "$disk"
 	done
 	echo ================================
