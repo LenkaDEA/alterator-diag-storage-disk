@@ -140,6 +140,21 @@ get_disks()
 	return "$retval"
 }
 
+# Verification whether this machine is virtual
+is_vm()
+{
+	local retval=0
+	echo ================================
+	hostnamectl | grep -i virtualization || retval=1
+	if [ "$retval" -eq "0" ]; then
+		echo This is a virtual machine.
+	else
+		echo This is not a virtual machine
+	fi
+	echo ================================
+	return "$retval"
+}
+
 # Display a list of system disks
 view_disks()
 {
@@ -255,6 +270,7 @@ view_tests_smartctl()
 	return "$retval"
 }
 
+task is_vm
 task view_disks
 task view_adout_disk
 task check_support_smart

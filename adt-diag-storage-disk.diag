@@ -7,6 +7,10 @@ Comment = Disk diagnostics using the smartctl utility
 Comment[ru_RU] = Диагностика дисков с помощью утилиты smartctl
 Icon = adt-diag-storage-disk
 
+[is_vm]
+DisplayName = Verification whether this machine is virtual
+DisplayName[ru_RU] = Проверка, является ли этот компьютер виртуальным
+
 [view_disks]
 DisplayName = Display disks
 DisplayName[ru_RU] = Показать диски
