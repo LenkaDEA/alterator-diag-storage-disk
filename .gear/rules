@@ -1,2 +1,2 @@
 tar: .
-spec: .gear/adt-diag-storage-disk.spec
+spec: .gear/diag-storage-disk.spec

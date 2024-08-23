@@ -1,4 +1,4 @@
-Name: adt-diag-storage-disk
+Name: diag-storage-disk
 Version: 0.0.1
 Release: alt1
 

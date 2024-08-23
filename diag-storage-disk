@@ -236,7 +236,6 @@ view_disk_health()
 short_test_smartctl()
 {
 	local retval=0
-	local
 	echo ================================
 	get_disks || retval=1
 	for disk in $DISKS; do
