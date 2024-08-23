@@ -1,23 +1,22 @@
-Name: diag-storage-disk
+%define _unpackaged_files_terminate_build 1
+%define diagnostic_tool storage-disk
+Name: diag-%diagnostic_tool
 Version: 0.0.1
 Release: alt1
 
-Summary: Disks diagnostic tool
+Summary: Storage Disks Diagnostic Tool
 License: GPLv3
 Group: System/Configuration/Other
+Url: https://gitlab.basealt.space/alt/diag-storage-disk
 BuildArch: noarch
-
-Url: https://gitlab.basealt.space/alt/diag-disks
-
 Source: %name-%version.tar
 
-BuildRequires(pre): rpm-macros-alterator
-BuildRequires: shellcheck
+BuildRequires: rpm-macros-alterator
 
 Requires: smartmontools
 
 %description
-Disks diagnostic tool.
+Storage disks diagnostic tool.
 
 %prep
 %setup
@@ -26,18 +25,17 @@ Disks diagnostic tool.
 sed -i 's/^VERSION=.*/VERSION=%version/' %name
 
 %install
+mkdir -p %buildroot%_alterator_datadir/diagnostictools/%name
+
 install -p -D -m755 %name %buildroot%_bindir/%name
 install -p -D -m644 %name.backend %buildroot%_alterator_datadir/backends/%name.backend
-install -p -D -m644 %name.diag %buildroot%_alterator_datadir/diag/%name.diag
+install -p -D -m644 %diagnostic_tool.diag %buildroot%_alterator_datadir/diagnostictools/%diagnostic_tool.diag
 install -p -D %name.svg %buildroot%_iconsdir/hicolor/scalable/apps/%name.svg
-
-%check
-shellcheck -e SC1090,SC1091,SC2004,SC2015,SC2034,SC2086,SC2154,SC2001,SC2120,SC2119,SC2317 %name
 
 %files
 %_bindir/%name
-%_alterator_datadir/backends/*.backend
-%_alterator_datadir/diag/*.diag
+%_alterator_datadir/backends/%name.backend
+%_alterator_datadir/diagnostictools/%diagnostic_tool.diag
 %_iconsdir/hicolor/scalable/apps/%name.svg
 
 %changelog
